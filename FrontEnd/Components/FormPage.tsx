@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { ScrollView, Text, TextInput, View, Button, StyleSheet, Alert } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
+import Toast, { SuccessToast, ErrorToast } from 'react-native-toast-message';
+import { BaseToastProps } from 'react-native-toast-message';
 import { BACKEND_URL } from '@env';
 
 // Define the type for the user details
@@ -12,6 +14,141 @@ interface UserDetails {
     address: string;
 }
 
+
+
+// Customize toast config to ensure top-right positioning
+const toastConfig = {
+    success: (props: BaseToastProps) => (
+        <SuccessToast
+            {...props}
+            style={{
+                borderLeftColor: 'green',
+                position: 'absolute',
+
+
+            }}
+            text1Style={{
+                fontSize: 16,
+                fontWeight: 'bold',
+                color: 'green',
+            }}
+            text2Style={{
+                fontSize: 14,
+                color: 'black',
+            }}
+        />
+    ),
+    error: (props: BaseToastProps) => (
+        <ErrorToast
+            {...props}
+            style={{
+                borderLeftColor: 'red',
+                position: 'absolute',
+                top: 40,  // Adjust based on where you want it
+                right: 10,  // Right position to align with the top-right corner
+                marginBottom: 10,  // Bottom space from the top-right corner
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                borderRadius: 8,
+            }}
+            text1Style={{
+                fontSize: 16,
+                fontWeight: 'bold',
+                color: 'red',
+            }}
+            text2Style={{
+                fontSize: 14,
+                color: 'black',
+            }}
+        />
+    ),
+};
+
+{/*  // There are some issue in this code 
+    import React from 'react';
+import { BaseToastProps } from 'react-native-toast-message';
+import * as Animatable from 'react-native-animatable';
+import { SuccessToast, ErrorToast } from 'react-native-toast-message';
+
+const toastConfig = {
+    success: (props: BaseToastProps) => (
+        <Animatable.View
+            animation="fadeInRight" // Toast will fade in from the right
+            duration={500} // Duration for fade-in
+            style={{
+                position: 'absolute',
+                top: 40,  // Adjust based on where you want it
+                right: 10,  // Right position to align with the top-right corner
+                marginBottom: 10,  // Bottom space from the top-right corner
+                borderLeftColor: 'green',
+                borderRadius: 8,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+            }}
+        >
+            <SuccessToast
+                {...props}
+                style={[
+                    props.style, // Merging the existing style
+                    {
+                        backgroundColor: 'white', // Optional, change to your background color
+                    }
+                ]}
+                text1Style={{
+                    fontSize: 16,
+                    fontWeight: 'bold',
+                    color: 'green',
+                }}
+                text2Style={{
+                    fontSize: 14,
+                    color: 'black',
+                }}
+            />
+        </Animatable.View>
+    ),
+    error: (props: BaseToastProps) => (
+        <Animatable.View
+            animation="fadeInRight" // Toast will fade in from the right
+            duration={500} // Duration for fade-in
+            style={{
+                position: 'absolute',
+                top: 40, // Adjust based on where you want it
+                right: 10, // Right position to align with the top-right corner
+                marginBottom: 10, // Bottom space from the top-right corner
+                borderLeftColor: 'red',
+                borderRadius: 8,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+            }}
+        >
+            <ErrorToast
+                {...props}
+                style={[
+                    props.style, // Merging the existing style
+                    {
+                        backgroundColor: 'white', // Optional, change to your background color
+                    }
+                ]}
+                text1Style={{
+                    fontSize: 16,
+                    fontWeight: 'bold',
+                    color: 'red',
+                }}
+                text2Style={{
+                    fontSize: 14,
+                    color: 'black',
+                }}
+            />
+        </Animatable.View>
+    ),
+};
+
+export default toastConfig;
+
+    */}
+
+
+
 function UserDetailsForm() {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -19,85 +156,127 @@ function UserDetailsForm() {
     const [gender, setGender] = useState('');
     const [address, setAddress] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [message, setMessage] = useState<string | null>(null); // For displaying success/error message
+    const [errors, setErrors] = useState({
+        name: false,
+        email: false,
+        contacts: false,
+        gender: false,
+    });
+    const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
-    // Function to make API call to add user details
+    const validateFields = () => {
+        const newErrors = {
+            name: !name.trim(),
+            email: !email.trim(),
+            contacts: !contacts.trim(),
+            gender: !gender.trim(),
+        };
+        setErrors(newErrors);
+        return !Object.values(newErrors).some((error) => error);
+    };
+
+    { /*
+        const handleSubmit = () => {
+            if (validateFields()) {
+                Toast.show({
+                    type: 'success',
+                    text1: 'Success',
+                    text2: 'Form submitted successfully!',
+                });
+                Alert.alert('Success', 'Form submitted successfully!');
+            } else {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: 'Please fill in all required fields.',
+                });
+                Alert.alert('Error', 'Please fill in all required fields.');
+            }
+        };
+        */
+    }
+
     const addUserDetails = async () => {
-        if (name.trim() && email.trim() && contacts.trim() && gender.trim()) {
+        if (validateFields()) {
             setIsLoading(true);
 
-            const user = {
-                name: name,
-                email: email,
-                contacts: contacts,
-                gender: gender,
-                address: address,
-                createdAt: new Date().toISOString(),
+            const user: UserDetails = {
+                name,
+                email,
+                contacts,
+                gender,
+                address,
             };
 
             try {
-                const response = await fetch(
-                    `${BACKEND_URL}`,
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(user),
-                    }
-                );
+                const response = await fetch(`${BACKEND_URL}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(user),
+                });
 
                 if (response.ok) {
-                    // Reset form fields after successful submission
                     setName('');
                     setEmail('');
                     setContacts('');
                     setGender('');
                     setAddress('');
                     setIsLoading(false);
-                    setMessage('User details added successfully!'); // Success message
+                    setStatusMessage('User details added successfully!')
+                    Toast.show({
+                        type: 'success',
+                        text1: 'Success',
+                        text2: 'User details added successfully!',
+                    });
                 } else {
                     throw new Error('Failed to add user details');
                 }
             } catch (error) {
                 setIsLoading(false);
-                console.error('Error adding user details: ', error);
-                setMessage('Failed to add user details. Please try again.'); // Error message
+                setStatusMessage('Failed to add user details. Please try again.');
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: 'Failed to add user details. Please try again.',
+                });
             }
-        } else {
-            setMessage('Please fill in all fields.'); // Validation error message
         }
     };
 
     return (
         <ScrollView style={styles.container}>
             <Text style={styles.headingText}>User Details Form</Text>
-            {/* Form Details Section */}
+            <Text style={styles.label}>
+                Name <Text style={styles.required}>*</Text>
+            </Text>
             <TextInput
-                style={styles.textInput}
+                style={[styles.textInput, errors.name && styles.errorBorder]}
                 placeholder="Name"
-                placeholderTextColor="#888" // Light gray placeholder for visibility
                 value={name}
                 onChangeText={setName}
             />
+            <Text style={styles.label}>
+                Email <Text style={styles.required}>*</Text>
+            </Text>
             <TextInput
-                style={styles.textInput}
+                style={[styles.textInput, errors.email && styles.errorBorder]}
                 placeholder="Email"
-                placeholderTextColor="#888"
                 value={email}
                 onChangeText={setEmail}
             />
+            <Text style={styles.label}>
+                Contacts <Text style={styles.required}>*</Text>
+            </Text>
             <TextInput
-                style={styles.textInput}
+                style={[styles.textInput, errors.contacts && styles.errorBorder]}
                 placeholder="Contacts"
-                placeholderTextColor="#888"
                 value={contacts}
                 onChangeText={setContacts}
             />
-
-            {/* Gender selection with checkboxes */}
-            <View style={styles.genderContainer}>
-                <Text style={styles.genderLabel}>Gender</Text>
+            <Text style={styles.label}>
+                Gender <Text style={styles.required}>*</Text>
+            </Text>
+            <View style={[styles.genderContainer, errors.gender && styles.errorBorder]}>
                 <View style={styles.checkboxContainer}>
                     <View style={styles.checkboxItem}>
                         <CheckBox
@@ -122,8 +301,6 @@ function UserDetailsForm() {
                     </View>
                 </View>
             </View>
-
-            {/* Button to add user details */}
             <View style={styles.buttonContainer}>
                 <Button
                     title={isLoading ? 'Adding...' : 'Add User Details'}
@@ -131,46 +308,54 @@ function UserDetailsForm() {
                     disabled={isLoading}
                 />
             </View>
-
-            {/* Display success or error message */}
-            {message && (
-                <Text style={styles.messageText}>{message}</Text>
+            {/* Status message below the form */}
+            {statusMessage && (
+                <Text style={styles.statusMessage}>{statusMessage}</Text>
             )}
+
+            <Toast config={toastConfig} />
         </ScrollView>
     );
 }
 
+
 const styles = StyleSheet.create({
     container: {
-        flex: 1, // Ensure it fills available space
+        flex: 1,
         padding: 16,
-        backgroundColor: '#f4f4f4', // Ensure background is visible
+        backgroundColor: '#f9f9f9',
     },
     headingText: {
-        fontSize: 24,
+        fontSize: 20,
         fontWeight: 'bold',
         marginBottom: 16,
-        color: '#6200ee',
-        textAlign: 'center',
+        color: '#333',
+    },
+    label: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginBottom: 4,
+        color: '#333',
+    },
+    required: {
+        color: 'red',
     },
     textInput: {
-        height: 45,
+        height: 50,
         borderColor: '#ccc',
         borderWidth: 1,
-        marginBottom: 12,
         borderRadius: 8,
+        marginBottom: 12,
         paddingHorizontal: 10,
-        color: '#000', // Black text for contrast
-        backgroundColor: '#fff', // White background for inputs
+        fontSize: 16,
+        backgroundColor: '#f9f9f9',
+        color: '#333',
+    },
+    errorBorder: {
+        borderColor: 'red',
     },
     genderContainer: {
         marginBottom: 20,
-    },
-    genderLabel: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 10,
-        color: '#6200ee',
     },
     checkboxContainer: {
         flexDirection: 'row',
@@ -183,20 +368,20 @@ const styles = StyleSheet.create({
     },
     checkboxText: {
         fontSize: 16,
-        color: '#000', // Black text for visibility
         marginLeft: 8,
+        color: '#333',
     },
     buttonContainer: {
-        marginTop: 16,
-        marginBottom: 20,
-    },
-    messageText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#d32f2f',
-        textAlign: 'center',
         marginTop: 20,
     },
+
+    statusMessage: {
+        marginTop: 20,
+        fontSize: 16,
+        color: 'green',  // You can change the color based on the message type
+        fontWeight: 'bold',
+    },
 });
+
 
 export default UserDetailsForm;

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, Alert, TextInput, Button, Modal } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
+import Toast from 'react-native-toast-message';
 import { BACKEND_URL } from '@env';
 
 // Define the type for user details
@@ -56,24 +57,31 @@ const SavedData = () => {
     // Function to delete a user
     const deleteUser = async (uid: string) => {
         try {
-            await fetch(`${BACKEND_URL}/${uid}`, {
-                method: 'DELETE',
+            await fetch(`${BACKEND_URL}/${uid}`, { method: 'DELETE' });
+            Toast.show({
+                type: 'success',
+                text1: 'Success',
+                text2: 'User deleted successfully!',
             });
-            Alert.alert('Success', 'User deleted successfully!');
-            fetchUserDetails(); // Refresh data after deletion
+            fetchUserDetails();
         } catch (error) {
-            console.error('Error deleting user:', error);
-            Alert.alert('Error', 'Failed to delete user. Please try again.');
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'Failed to delete user. Please try again.',
+            });
         }
     };
-
-    // Function to update a user
+    // Function to Update a user
     const updateUser = async () => {
         if (!updatedUser || !updatedUser.uid) {
-            Alert.alert('Error', 'Invalid user data.');
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'Invalid user data.',
+            });
             return;
         }
-
         try {
             await fetch(`${BACKEND_URL}/${updatedUser.uid}`, {
                 method: 'PATCH',
@@ -86,14 +94,22 @@ const SavedData = () => {
                     address: updatedUser.address,
                 }),
             });
-            Alert.alert('Success', 'User updated successfully!');
-            setIsModalVisible(false); // Close modal
-            fetchUserDetails(); // Refresh data
+            Toast.show({
+                type: 'success',
+                text1: 'Success',
+                text2: 'User updated successfully!',
+            });
+            setIsModalVisible(false);
+            fetchUserDetails();
         } catch (error) {
-            console.error('Error updating user:', error);
-            Alert.alert('Error', 'Failed to update user. Please try again.');
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'Failed to update user. Please try again.',
+            });
         }
     };
+
 
     // Open update modal with selected user details
     const openUpdateModal = (user: UserDetails) => {
@@ -222,6 +238,7 @@ const SavedData = () => {
                     </View>
                 </View>
             </Modal>
+            <Toast />
         </View>
     );
 };
