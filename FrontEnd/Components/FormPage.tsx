@@ -21,48 +21,21 @@ const toastConfig = {
     success: (props: BaseToastProps) => (
         <SuccessToast
             {...props}
-            style={{
-                borderLeftColor: 'green',
-                position: 'absolute',
-
-
-            }}
-            text1Style={{
-                fontSize: 16,
-                fontWeight: 'bold',
-                color: 'green',
-            }}
-            text2Style={{
-                fontSize: 14,
-                color: 'black',
-            }}
+            style={{ borderLeftColor: 'green' }}
+            text1Style={{ fontSize: 16, fontWeight: 'bold', color: 'green' }}
+            text2Style={{ fontSize: 14, color: 'black' }}
         />
     ),
     error: (props: BaseToastProps) => (
         <ErrorToast
             {...props}
-            style={{
-                borderLeftColor: 'red',
-                position: 'absolute',
-                top: 40,  // Adjust based on where you want it
-                right: 10,  // Right position to align with the top-right corner
-                marginBottom: 10,  // Bottom space from the top-right corner
-                paddingHorizontal: 16,
-                paddingVertical: 12,
-                borderRadius: 8,
-            }}
-            text1Style={{
-                fontSize: 16,
-                fontWeight: 'bold',
-                color: 'red',
-            }}
-            text2Style={{
-                fontSize: 14,
-                color: 'black',
-            }}
+            style={{ borderLeftColor: 'red' }}
+            text1Style={{ fontSize: 16, fontWeight: 'bold', color: 'red' }}
+            text2Style={{ fontSize: 14, color: 'black' }}
         />
     ),
 };
+
 
 {/*  // There are some issue in this code 
     import React from 'react';
@@ -161,6 +134,7 @@ function UserDetailsForm() {
         email: false,
         contacts: false,
         gender: false,
+        address: false
     });
     const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
@@ -170,6 +144,7 @@ function UserDetailsForm() {
             email: !email.trim(),
             contacts: !contacts.trim(),
             gender: !gender.trim(),
+            address: !address.trim(),
         };
         setErrors(newErrors);
         return !Object.values(newErrors).some((error) => error);
@@ -221,14 +196,16 @@ function UserDetailsForm() {
                     setContacts('');
                     setGender('');
                     setAddress('');
-                    setIsLoading(false);
-                    setStatusMessage('User details added successfully!')
+                    setErrors({ name: false, email: false, contacts: false, gender: false, address: false }); // Reset errors
+                    setStatusMessage('User details added successfully!');
                     Toast.show({
                         type: 'success',
                         text1: 'Success',
                         text2: 'User details added successfully!',
                     });
-                } else {
+                }
+
+                else {
                     throw new Error('Failed to add user details');
                 }
             } catch (error) {
@@ -245,7 +222,7 @@ function UserDetailsForm() {
 
     return (
         <ScrollView style={styles.container}>
-            <Text style={styles.headingText}>User Details Form</Text>
+            <Text style={styles.headingText}>Vendor Registration</Text>
             <Text style={styles.label}>
                 Name <Text style={styles.required}>*</Text>
             </Text>
@@ -301,6 +278,16 @@ function UserDetailsForm() {
                     </View>
                 </View>
             </View>
+            <Text style={styles.label}>
+                Address <Text style={styles.required}>*</Text>
+            </Text>
+            <TextInput
+                style={[styles.textInput, errors.address && styles.errorBorder]}
+                placeholder="Address"
+                value={address}
+                onChangeText={setAddress}
+                multiline
+            />
             <View style={styles.buttonContainer}>
                 <Button
                     title={isLoading ? 'Adding...' : 'Add User Details'}

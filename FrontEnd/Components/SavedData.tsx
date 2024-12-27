@@ -199,25 +199,25 @@ const SavedData = () => {
                             <View style={styles.checkboxContainer}>
                                 <View style={styles.checkboxItem}>
                                     <CheckBox
-                                        value={gender === 'male'}
-                                        onValueChange={() => setGender('male')}
-                                        tintColors={{ true: '#6200ee', false: '#ccc' }} // Adds color when checked/unchecked
+                                        value={updatedUser?.gender === 'male'}
+                                        onValueChange={() => handleInputChange('gender', 'male')}
+                                        tintColors={{ true: '#6200ee', false: '#ccc' }}
                                     />
                                     <Text style={styles.checkboxText}>Male</Text>
                                 </View>
                                 <View style={styles.checkboxItem}>
                                     <CheckBox
-                                        value={gender === 'female'}
-                                        onValueChange={() => setGender('female')}
-                                        tintColors={{ true: '#6200ee', false: '#ccc' }} // Adds color when checked/unchecked
+                                        value={updatedUser?.gender === 'female'}
+                                        onValueChange={() => handleInputChange('gender', 'female')}
+                                        tintColors={{ true: '#6200ee', false: '#ccc' }}
                                     />
                                     <Text style={styles.checkboxText}>Female</Text>
                                 </View>
                                 <View style={styles.checkboxItem}>
                                     <CheckBox
-                                        value={gender === 'others'}
-                                        onValueChange={() => setGender('others')}
-                                        tintColors={{ true: '#6200ee', false: '#ccc' }} // Adds color when checked/unchecked
+                                        value={updatedUser?.gender === 'others'}
+                                        onValueChange={() => handleInputChange('gender', 'others')}
+                                        tintColors={{ true: '#6200ee', false: '#ccc' }}
                                     />
                                     <Text style={styles.checkboxText}>Others</Text>
                                 </View>
