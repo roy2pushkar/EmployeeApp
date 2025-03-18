@@ -1,62 +1,81 @@
-// Use node-fetch for server-side fetching
-const fetch = require('node-fetch');
-
+const fetch = require("node-fetch");
 
 // Fetch all users using R
 const getUsers = async (req, res) => {
   try {
-    console.log('Fetching all users'); // Log when the function is called
-    
-    // GET request 
-    const response = await fetch('https://loginform-90dc7-default-rtdb.firebaseio.com/users.json');
-    const data = await response.json(); // Parse the response as JSON
+    // Fetch Realtime data from Firebase
+    const response = await fetch(
+      "https://loginform-90dc7-default-rtdb.firebaseio.com/users.json"
+    );
 
-    
-    console.log('Fetched data:', JSON.stringify(data, null, 2));
-    console.log('API called!');
+    // Check if the fetch was successful
+    if (!response.ok) {
+      return res
+        .status(response.status)
+        .json({ error: `Failed to fetch data. Status: ${response.status}` });
+    }
 
+    // Parse the JSON data
+    const data = await response.json();
 
+    // Check if there are users in the response
     if (data) {
-      
       const userList = Object.keys(data).map((key) => ({
         uid: key,
         ...data[key],
       }));
 
-      console.log('Formatted user list:', userList); 
-      res.status(200).json(userList); 
+      return res.status(200).json(userList);
     } else {
-      console.log('No users found');
-      res.status(200).json([]); 
+      return res.status(200).json([]); // Return empty array if no users found
     }
-    
   } catch (error) {
-    console.error('Error fetching users:', error);
-    res.status(500).json({ error: 'Failed to fetch users' });
+    // Handle error when fetch fails or there's a parsing issue
+    return res.status(500).json({ error: "Failed to fetch users" });
   }
 };
 
 // Add a new user using Firebase REST API
 const addUser = async (req, res) => {
   try {
-    console.log('Adding new user:', req.body);
-    
-    // Making a POST request 
-    const response = await fetch('https://loginform-90dc7-default-rtdb.firebaseio.com/users.json', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json', // Sending JSON data
-      },
-      body: JSON.stringify(req.body), // Convert the body to JSON string
-    });
+    // Log the incoming request body
+    console.log("Incoming user data:", req.body);
 
-    const data = await response.json(); // Parse the response as JSON
+    const response = await fetch(
+      "https://loginform-90dc7-default-rtdb.firebaseio.com/users.json",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(req.body),
+      }
+    );
 
-    console.log('User added with ID:', data.name); // Firebase returns the ID in the "name" property
-    res.status(201).json({ message: 'User added successfully', id: data.name });
+    // Check if the fetch was successful
+    if (!response.ok) {
+      const errorData = await response.json(); // Log the error response from Firebase
+      console.error("Error response from Firebase:", errorData);
+      return res
+        .status(response.status)
+        .json({ error: `Failed to add user. Status: ${response.status}` });
+    }
+
+    // Parse the response data
+    const data = await response.json();
+    console.log("Firebase response:", data);
+
+    // Check if 'name' is present in the Firebase response
+    if (data && data.name) {
+      return res
+        .status(201)
+        .json({ message: "User added successfully", id: data.name });
+    } else {
+      // If 'name' is missing, return an error
+      return res.status(500).json({ error: "Failed to add user: Missing ID" });
+    }
   } catch (error) {
-    console.error('Error adding user:', error);
-    res.status(500).json({ error: 'Failed to add user' });
+    // Handle any other unexpected errors
+    console.error("Unexpected error:", error);
+    return res.status(500).json({ error: "Failed to add user" });
   }
 };
 
@@ -64,28 +83,26 @@ const addUser = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const { uid } = req.params;
-    console.log('Updating user with UID:', uid); // Log the UID of the user being updated
-    console.log('Request body for update:', req.body); // Log the request body for update
 
-    // Making a PATCH request to Firebase to update the user
-    const response = await fetch(`https://loginform-90dc7-default-rtdb.firebaseio.com/users/${uid}.json`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json', // Sending JSON data
-      },
-      body: JSON.stringify(req.body), // Convert the body to JSON string
-    });
+    const response = await fetch(
+      `https://loginform-90dc7-default-rtdb.firebaseio.com/users/${uid}.json`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(req.body),
+      }
+    );
 
-    if (response.ok) {
-      console.log('User updated successfully');
-      res.status(200).json({ message: 'User updated successfully' });
-    } else {
-      console.error('Failed to update user');
-      res.status(500).json({ error: 'Failed to update user' });
+    // Check if the fetch was successful
+    if (!response.ok) {
+      return res
+        .status(response.status)
+        .json({ error: `Failed to update user. Status: ${response.status}` });
     }
+
+    return res.status(200).json({ message: "User updated successfully" });
   } catch (error) {
-    console.error('Error updating user:', error);
-    res.status(500).json({ error: 'Failed to update user' });
+    return res.status(500).json({ error: "Failed to update user" });
   }
 };
 
@@ -93,23 +110,24 @@ const updateUser = async (req, res) => {
 const deleteUser = async (req, res) => {
   try {
     const { uid } = req.params;
-    console.log('Deleting user with UID:', uid); // Log the UID of the user being deleted
 
-    // Making a DELETE request to Firebase to delete the user
-    const response = await fetch(`https://loginform-90dc7-default-rtdb.firebaseio.com/users/${uid}.json`, {
-      method: 'DELETE',
-    });
+    const response = await fetch(
+      `https://loginform-90dc7-default-rtdb.firebaseio.com/users/${uid}.json`,
+      {
+        method: "DELETE",
+      }
+    );
 
-    if (response.ok) {
-      console.log('User deleted successfully');
-      res.status(200).json({ message: 'User deleted successfully' });
-    } else {
-      console.error('Failed to delete user');
-      res.status(500).json({ error: 'Failed to delete user' });
+    // Check if the fetch was successful
+    if (!response.ok) {
+      return res
+        .status(response.status)
+        .json({ error: `Failed to delete user. Status: ${response.status}` });
     }
+
+    return res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
-    console.error('Error deleting user:', error);
-    res.status(500).json({ error: 'Failed to delete user' });
+    return res.status(500).json({ error: "Failed to delete user" });
   }
 };
 

@@ -1,9 +1,9 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const userRoutes = require('./routes/userRoutes');
-const errorHandler = require('./middlewares/errorMiddleware');
-const logger = require('./utils/logger');
-const cors = require('cors');
+const express = require("express");
+const dotenv = require("dotenv");
+const userRoutes = require("./routes/userRoutes");
+const errorHandler = require("./middlewares/errorMiddleware");
+const logger = require("./utils/logger");
+const cors = require("cors");
 
 // Initialize dotenv to load environment variables
 dotenv.config();
@@ -12,12 +12,19 @@ dotenv.config();
 const app = express();
 
 // Enable CORS before using express middlewares
-app.use(cors());
+const corsOptions = {
+  origin: "*", // Allow all origins, change for more specific CORS policies
+  methods: "GET,POST,PUT,PATCH,DELETE",
+  allowedHeaders: "Content-Type, Authorization",
+};
+
+// Use CORS middleware globally
+app.use(cors(corsOptions));
 
 app.use(express.json()); // Parse JSON body
 app.use(logger); // Log each request
 
-app.use('/api/users', userRoutes); // User-related routes
+app.use("/api/users", userRoutes); // User-related routes
 
 app.use(errorHandler); // Error handling middleware
 
