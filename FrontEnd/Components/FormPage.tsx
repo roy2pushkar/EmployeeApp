@@ -4,6 +4,7 @@ import CheckBox from '@react-native-community/checkbox';
 import Toast from 'react-native-toast-message';
 import { BACKEND_URL } from '@env';
 import useLocation from './LocationServices'; // Import your location service
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 interface UserDetails {
     name: string;
@@ -45,7 +46,7 @@ const UserDetailsForm = () => {
         return !Object.values(newErrors).some((error) => error);
     };
 
-    const addUserDetails = async () => {
+ const addUserDetails = async () => {
         if (validateFields()) {
             setIsLoading(true);
 
@@ -97,8 +98,12 @@ const UserDetailsForm = () => {
                     text2: 'Failed to add user details. Please try again.',
                 });
             }
+            setIsLoading(false);
         }
     };
+
+
+
 
     return (
         <ScrollView style={styles.container}>
@@ -167,14 +172,22 @@ const UserDetailsForm = () => {
             </View>
             
             {/* Show Location */}
-            {location.address && (
-                <View style={styles.locationContainer}>
-                    <Text style={styles.locationText}>Location: </Text>
-                    <Text style={styles.locationText}>
-                       {location.address}
-                    </Text>
+            {
+                location.address && (
+            <View style={styles.locationContainer}>
+                {/* Location Icon */}
+                <View style={styles.iconContainer}>
+                    <Icon name="location-on" size={30} color="#ff5722" />
                 </View>
-            )}
+
+                {/* Address Text */}
+                <View style={styles.addressContainer}>
+                    <Text style={styles.labelText}>Your Location:</Text>
+                    <Text style={styles.addressText}>{location.address}</Text>
+                </View>
+            </View>
+        )
+            }
 
             {statusMessage && (
                 <Text style={styles.statusMessage}>{statusMessage}</Text>
@@ -246,14 +259,36 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     locationContainer: {
-        marginTop: 20,
+        flexDirection: 'row',
+        alignItems: 'center',
         padding: 10,
-        backgroundColor: '#e0f7fa',
-        borderRadius: 8,
+        borderRadius: 10,
+        backgroundColor: '#f9f9f9',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+        margin: 10,
     },
-    locationText: {
+    iconContainer: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 10,
+    },
+    addressContainer: {
+        flex: 1,
+    },
+    labelText: {
+        fontSize: 14,
+        color: '#888',
+        fontWeight: '600',
+        marginBottom: 2,
+    },
+    addressText: {
         fontSize: 16,
         color: '#333',
+        fontWeight: 'bold',
     },
 });
 

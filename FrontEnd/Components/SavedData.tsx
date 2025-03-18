@@ -26,17 +26,26 @@ const SavedData = () => {
     const [gender, setGender] = useState('');
 
     // Function to fetch user details using REST API
-    const fetchUserDetails = async () => {
-        setIsLoading(true); // Show loader while fetching
-        try {
-            // Adjusted URL to match the actual backend route without '.json'
-            const response = await fetch(`${BACKEND_URL}`);
+   const fetchUserDetails = async () => {
+    setIsLoading(true); // Show loader while fetching
+    try {
+        // Log the backend URL for debugging purposes
+        console.log('Fetching from backend URL:', BACKEND_URL);
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch data from backend');
-            }
+        const response = await fetch(`${BACKEND_URL}`);
+        
+        console.log('Response status:', response.status);  // Log the HTTP status
+        console.log('Response headers:', response.headers); // Log the response headers
 
-            const data = await response.json(); // Parse the JSON response
+        if (!response.ok) {
+            throw new Error(`Failed to fetch data from backend. Status: ${response.status}`);
+        }
+
+        // Check if the response is a valid JSON before attempting to parse
+        const contentType = response.headers.get('Content-Type');
+        if (contentType && contentType.includes('application/json')) {
+            const data = await response.json();  // Parse the JSON response
+            
             if (data) {
                 const userList = Object.keys(data).map((key) => ({
                     uid: key,
@@ -46,13 +55,20 @@ const SavedData = () => {
             } else {
                 setUserDetails([]); // Handle case where no data exists
             }
-        } catch (error) {
-            console.error('Error fetching user details:', error);
-            Alert.alert('Error', 'Unable to fetch data. Please try again later.');
-        } finally {
-            setIsLoading(false); // Hide loader
+        } else {
+            throw new Error('Invalid content type. Expected JSON.');
         }
-    };
+        
+    } catch (error) {
+        console.error('Error fetching user details:', error);
+        
+        // Provide more detailed feedback for debugging
+        Alert.alert('Error', `Unable to fetch data. Error: ${error.message}`);
+    } finally {
+        setIsLoading(false); // Hide loader
+    }
+};
+
 
     // Function to delete a user
     const deleteUser = async (uid: string) => {
